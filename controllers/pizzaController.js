@@ -5,7 +5,7 @@ function index(req, res) {
   // make a copy of the menu
   let filteredMenu = menu
   // TODO: Filter the results
-  console.log(req);
+
 
   if (req.query.ingredient) {
     console.log('filter the results');
@@ -44,15 +44,81 @@ function show(req, res) {
   //res.send(`Return pizza with id: ${pizzaId}`)
 }
 
-/* TODO */
+
 function store(req, res) {
 
-  res.send('Store a new pizza')
+  // Creiamo un nuovo id incrementando l'ultimo id presente
+  const newId = menu[menu.length - 1].id + 1;
+
+
+  const { ingredients } = req.body
+  console.log(typeof ingredients);
+
+
+  // Creiamo un nuovo oggetto pizza
+  const newPizza = {
+    id: newId,
+    name: req.body.name,
+    price: req.body.price,
+    img: req.body.img,
+    ingredients: req.body.ingredients
+  }
+
+  // Aggiungiamo la nuova pizza al menu
+  menu.push(newPizza);
+
+  // controlliamo
+  console.log(menu);
+
+
+  // Restituiamo lo status corretto e la pizza appena creata
+  res.status(201);
+  res.json(newPizza);
+
 }
 
+/* TODO */
 function update(req, res) {
-  res.send(`Update the pizza with an id of ${req.params.id}`)
+
+  // get the pizza id
+  const pizzaId = Number(req.params.id)
+
+  // find the pizza by id
+  const pizza = menu.find(pizza => pizza.id === pizzaId)
+  console.log(pizza);
+
+  // check if the pizza is in our list or return a 404
+  if (!pizza) {
+
+    // set the status code accordingly
+    //res.status(404)
+
+    return res.status(404).json({
+      error: '404 Not Found',
+      message: 'Pizza not found'
+    })
+  }
+
+  // update the resource
+  console.log(req.body);
+
+  pizza.name = req.body.name;
+  pizza.price = req.body.price;
+  pizza.ingredients = req.body.ingredients;
+  pizza.img = req.body.img;
+
+
+  // check if the menu was updated
+  console.log(menu);
+
+  //res.send(`Update the pizza with an id of ${req.params.id}`)
+
+  res.json(pizza);
+
+
+
 }
+
 
 function modify(req, res) {
   res.send(`Modify the pizza with an id of ${req.params.id}`)

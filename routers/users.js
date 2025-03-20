@@ -1,7 +1,9 @@
 const express = require('express')
 const router = express.Router()
+const logger = require('../middlewares/logger')
 
 
+router.use(logger)
 // index (Read)
 router.get('/', (req, res) => {
   res.send('Return all users here')
@@ -12,7 +14,7 @@ router.get('/:id', (req, res) => {
 
   //console.log(req);
 
-  const pizzaId = req.params.id
+  const userId = req.params.id
   res.send(`Return user with id: ${userId}`)
 })
 
