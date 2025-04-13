@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require("cors");
 const app = express()
 const port = 3000;
 const pizzasRouter = require('./routers/pizzas')
@@ -8,10 +9,12 @@ const serverError = require('./middlewares/serverError')
 const error_404 = require('./middlewares/error_404')
 
 
-
 // Middeleware
 app.use(express.static('public'))
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5176'
+}));
 
 // Global Middelware
 // Anonimous function
@@ -45,9 +48,9 @@ app.get('/', (req, res) => {
   // 👉 Trigger the error by calling a method that does not exists
   //app.daje();
   // or use the throw keyword
-  throw new Error('Server Error')
+  //throw new Error('Server Error')
 
-  //res.send('Welcome To our Server')
+  res.send('Welcome To our Server')
 
 })
 
