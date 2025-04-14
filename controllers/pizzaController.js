@@ -1,19 +1,34 @@
+const connection = require('../data/db')
 const menu = require('../data/menu')
+
+
 
 function index(req, res) {
 
-  // make a copy of the menu
-  let filteredMenu = menu
-  // TODO: Filter the results
+  const sql = 'SELECT * FROM pizzas'
+  connection.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Query Failed' })
+
+    console.log(results);
+    res.json(results)
+
+  });
 
 
-  if (req.query.ingredient) {
-    console.log('filter the results');
-    filteredMenu = menu.filter(pizza => pizza.ingredients.includes(req.query.ingredient))
+  /*   // make a copy of the menu
+    let filteredMenu = menu
+    // TODO: Filter the results
+  
+  
+    if (req.query.ingredient) {
+      console.log('filter the results');
+      filteredMenu = menu.filter(pizza => pizza.ingredients.includes(req.query.ingredient))
+  
+    }
+    //res.send('Return all pizzas here')
+    res.json(filteredMenu) */
 
-  }
-  //res.send('Return all pizzas here')
-  res.json(filteredMenu)
+
 }
 
 function show(req, res) {
@@ -22,25 +37,66 @@ function show(req, res) {
 
   const pizzaId = Number(req.params.id)
 
-  // find the pizza with the given id
-  const pizza = menu.find(pizza => pizza.id === pizzaId)
-  console.log(pizza);
+  const sql = 'SELECT * FROM pizzas WHERE id = ?'
 
-  // handle 404 error
-  if (!pizza) {
+  const sqlJoin = `
+  SELECT ingredients.*
+  FROM pizza_ingredients
+  JOIN ingredients ON pizza_ingredients.ingredient_id = ingredients.id
+  WHERE pizza_ingredients.pizza_id = ?
+`
 
-    // set the status code accordingly
-    //res.status(404)
 
-    return res.status(404).json({
-      error: '404 Not Found',
-      message: 'Pizza not found'
+  connection.query(sql, [pizzaId], (err, pizzaResults) => {
+
+    if (err) return res.status(500).json({ message: 'Query Failed' })
+    if (pizzaResults.length === 0) return res.status(404).json({ message: 'Pizza not found' })
+
+    // Get the pizza from the results
+    const pizza = pizzaResults[0]
+    //console.log(pizza);
+
+
+    /* TODO: get the data from the retationship */
+    connection.query(sqlJoin, [pizzaId], (err, ingredientsResults) => {
+      if (err) return res.status(500).json({ message: 'Query Failed' })
+
+      console.log(ingredientsResults); // [{}]
+      pizza.ingredients = ingredientsResults
+
+
+      // return the response
+      res.json(pizza)
+
     })
-  }
+
+
+  })
+
+
+
+
+
+  /* 
+    // find the pizza with the given id
+    const pizza = menu.find(pizza => pizza.id === pizzaId)
+    console.log(pizza);
+  
+    // handle 404 error
+    if (!pizza) {
+  
+      // set the status code accordingly
+      //res.status(404)
+  
+      return res.status(404).json({
+        error: '404 Not Found',
+        message: 'Pizza not found'
+      }) */
+
 
   // return the given pizza
 
-  res.json(pizza)
+
   //res.send(`Return pizza with id: ${pizzaId}`)
 }
 
@@ -126,37 +182,22 @@ function modify(req, res) {
 
 // if you want you an use arrow functions with fucntion expressions
 
-const destroy = (req, res) => {
+function destroy(req, res) {
 
 
 
   // get the id of the given pizza
   const pizzaId = Number(req.params.id)
 
-  // find the pizza with the given ID in the menu
-  const pizza = menu.find(pizza => pizza.id === pizzaId)
-  console.log(pizza);
-  // if not found return a 404
-  if (!pizza) {
+  const sql = 'DELETE FROM pizzas WHERE id = ?'
 
-    // set the status code accordingly
-    //res.status(404)
+  connection.query(sql, [pizzaId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Query Failed' })
+    if (results.affectedRows === 0) return res.status(404).json({ message: 'There is nothing to delete' })
+    //console.log(results);
 
-    return res.status(404).json({
-      error: '404 Not Found',
-      message: 'Pizza not found'
-    })
-  }
-
-  // remove the give object from the menu array (use splice)
-
-
-
-  menu.splice(menu.indexOf(pizza), 1)
-
-  console.log(menu);
-
-  res.sendStatus(204)
+    res.sendStatus(204)
+  })
 
 
 }
